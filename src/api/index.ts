@@ -1,5 +1,5 @@
-import axios from "axios"
+import axios from "axios";
 
-export cont axios.create({
-  baseURL : ''
-})
+export const api = axios.create({
+  baseURL: "https://68ca86d1430c4476c349d858.mockapi.io",
+});

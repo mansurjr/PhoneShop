@@ -1,9 +1,10 @@
 import { memo } from 'react';
+import PhoneManager from './api/phoneCRUD';
 
 const App = () => {
   return (
     <div className="App">
-      <h2>App</h2>
+      <PhoneManager/>
     </div>
   );
 };
