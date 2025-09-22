@@ -1,29 +1,18 @@
 import React, { useState } from "react";
+import { usePhone } from "../api/hooks/useOhoneQueries";
 import {
-  usePhones,
-  useAddPhone,
-  useUpdatePhone,
-  useDeletePhone,
-} from "../api/hooks/useOhoneQueries";
-import {
-  Layout,
   Input,
   InputNumber,
   Button,
-  Typography,
   Spin,
   Alert,
-  Row,
-  Col,
-  Card,
-  Select,
-  Tag,
-  Switch,
-  Form,
-  Space,
   Modal,
-  Image,
+  Form,
+  Tag,
   Tooltip,
+  Space,
+  Switch,
+  Select,
   Popconfirm,
 } from "antd";
 import { PlusOutlined, DeleteOutlined } from "@ant-design/icons";
@@ -57,19 +46,14 @@ const colorOptions = [
   value: color,
 }));
 
-const { Title, Text } = Typography;
-
 const PhoneManager: React.FC = () => {
-  const { data: phones, isLoading, isError, error } = usePhones();
-  const addPhone = useAddPhone();
-  const updatePhone = useUpdatePhone();
-  const deletePhone = useDeletePhone();
+  const { phones, addPhone, updatePhone, deletePhone } = usePhone();
+
+  const { data: phoneList, isLoading, isError, error } = phones;
 
   const [form] = Form.useForm();
-
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPhone, setEditingPhone] = useState<Phone | null>(null);
-
   const [currentImageUrl, setCurrentImageUrl] = useState("");
   const [imageUrls, setImageUrls] = useState<string[]>([]);
 
@@ -96,9 +80,7 @@ const PhoneManager: React.FC = () => {
       ...values,
       price: values.price.toString(),
       image: imageUrls,
-      hasDelivery: !!values.hasDelivery,
     };
-
     if (editingPhone) {
       updatePhone.mutate(
         { ...editingPhone, ...phoneData },
@@ -110,7 +92,6 @@ const PhoneManager: React.FC = () => {
         }
       );
     } else {
-      // add
       addPhone.mutate(phoneData, {
         onSuccess: () => {
           resetForm();
@@ -135,13 +116,7 @@ const PhoneManager: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
-          height: "100vh",
-        }}>
+      <div className="flex items-center justify-center h-screen">
         <Spin tip="Loading phones..." size="large" />
       </div>
     );
@@ -149,10 +124,10 @@ const PhoneManager: React.FC = () => {
 
   if (isError) {
     return (
-      <div style={{ padding: "50px" }}>
+      <div className="p-12">
         <Alert
           message="Error"
-          description={error?.message || "Failed to fetch data"}
+          description={(error as Error)?.message || "Failed to fetch data"}
           type="error"
           showIcon
         />
@@ -161,11 +136,9 @@ const PhoneManager: React.FC = () => {
   }
 
   return (
-    <Layout style={{ padding: "24px" }} className="container">
-      <Row justify="space-between" align="middle" style={{ marginBottom: 24 }}>
-        <Title level={2} style={{ margin: 0 }}>
-          Phone Manager
-        </Title>
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Phone Manager</h2>
         <Button
           type="primary"
           icon={<PlusOutlined />}
@@ -175,7 +148,7 @@ const PhoneManager: React.FC = () => {
           }}>
           Add Phone
         </Button>
-      </Row>
+      </div>
 
       <Modal
         title={editingPhone ? "Edit Phone" : "Add New Phone"}
@@ -189,7 +162,7 @@ const PhoneManager: React.FC = () => {
           form={form}
           onFinish={handleSubmit}
           layout="vertical"
-          style={{ marginTop: "16px" }}>
+          className="mt-4">
           <Form.Item
             label="Title"
             name="title"
@@ -203,7 +176,7 @@ const PhoneManager: React.FC = () => {
             rules={[{ required: true, message: "Please input a price!" }]}>
             <InputNumber
               min={0}
-              style={{ width: "100%" }}
+              className="w-full"
               placeholder="e.g., 999"
               addonAfter="$"
             />
@@ -212,7 +185,6 @@ const PhoneManager: React.FC = () => {
           <Form.Item label="Memories (GB)" name="memories" initialValue={[]}>
             <Select
               mode="multiple"
-              allowClear
               options={memoryOptions}
               placeholder="Select memory options"
             />
@@ -221,45 +193,35 @@ const PhoneManager: React.FC = () => {
           <Form.Item label="Colours" name="colours" initialValue={[]}>
             <Select
               mode="tags"
-              allowClear
               options={colorOptions}
               placeholder="Select or type custom colours"
             />
           </Form.Item>
 
           <Form.Item label="Add Image URLs">
-            <>
-              <Space.Compact style={{ width: "100%" }}>
-                <Input
-                  placeholder="https://example.com/image.png"
-                  value={currentImageUrl}
-                  onChange={(e) => setCurrentImageUrl(e.target.value)}
-                  onPressEnter={handleAddImageUrl}
-                />
-                <Button type="primary" onClick={handleAddImageUrl}>
-                  Add
-                </Button>
-              </Space.Compact>
-              <div style={{ marginTop: 8, maxWidth: "100%" }}>
-                {imageUrls.map((url) => (
-                  <Tooltip title={url} key={url}>
-                    <Tag
-                      closable
-                      onClose={() => handleRemoveImageUrl(url)}
-                      style={{
-                        marginBottom: 4,
-                        maxWidth: "100%",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
-                        verticalAlign: "middle",
-                      }}>
-                      {url}
-                    </Tag>
-                  </Tooltip>
-                ))}
-              </div>
-            </>
+            <Space.Compact className="w-full">
+              <Input
+                placeholder="https://example.com/image.png"
+                value={currentImageUrl}
+                onChange={(e) => setCurrentImageUrl(e.target.value)}
+                onPressEnter={handleAddImageUrl}
+              />
+              <Button type="primary" onClick={handleAddImageUrl}>
+                Add
+              </Button>
+            </Space.Compact>
+            <div className="mt-2 w-full">
+              {imageUrls.map((url) => (
+                <Tooltip title={url} key={url}>
+                  <Tag
+                    closable
+                    onClose={() => handleRemoveImageUrl(url)}
+                    className="mb-1 max-w-full overflow-hidden whitespace-nowrap align-middle">
+                    {url}
+                  </Tag>
+                </Tooltip>
+              ))}
+            </div>
           </Form.Item>
 
           <Form.Item
@@ -286,88 +248,70 @@ const PhoneManager: React.FC = () => {
         </Form>
       </Modal>
 
-      <Title level={3}>Phone List</Title>
-      <Row gutter={[16, 16]}>
-        {phones?.map((phone: Phone) => (
-          <Col key={phone.id} xs={24} sm={12} md={8}>
-            <Card
-              hoverable
-              cover={
-                <Image
-                  alt={phone.title}
-                  src={
-                    phone.image[0] ||
-                    "https://via.placeholder.com/300x200?text=No+Image"
-                  }
-                  style={{ height: 200, objectFit: "contain", padding: 8 }}
-                  preview={{
-                    src:
-                      phone.image[0] ||
-                      "https://via.placeholder.com/300x200?text=No+Image",
-                  }}
-                  fallback="https://via.placeholder.com/300x200?text=Image+Failed"
-                />
+      <h3 className="text-xl font-semibold mt-8 mb-4">Phone List</h3>
+      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
+        {phoneList?.map((phone: Phone) => (
+          <div
+            key={phone.id}
+            className="border rounded-xl shadow-sm p-4 bg-white">
+            <img
+              alt={phone.title}
+              src={
+                phone.image[0] ||
+                "https://via.placeholder.com/300x200?text=No+Image"
               }
-              actions={[
+              className="h-48 w-full object-contain mb-4"
+            />
+            <div className="flex justify-between items-center mb-2">
+              <h4 className="text-lg font-medium">{phone.title}</h4>
+              <span className="text-green-600 font-semibold">
+                ${phone.price}
+              </span>
+            </div>
+            <p className="text-gray-500 mb-2">
+              Delivery: {phone.hasDelivery ? "Available" : "Not Available"}
+            </p>
+            <div className="mb-2">
+              <span className="font-semibold">Memories: </span>
+              {phone.memories.length > 0 ? (
+                phone.memories.map((mem) => (
+                  <Tag color="blue" key={mem}>{`${mem} GB`}</Tag>
+                ))
+              ) : (
+                <span className="text-gray-500">N/A</span>
+              )}
+            </div>
+            <div className="mb-4">
+              <span className="font-semibold">Colours: </span>
+              {phone.colours.length > 0 ? (
+                phone.colours.map((color) => <Tag key={color}>{color}</Tag>)
+              ) : (
+                <span className="text-gray-500">N/A</span>
+              )}
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button type="link" onClick={() => handleEdit(phone)}>
+                Edit
+              </Button>
+              <Popconfirm
+                title="Are you sure you want to delete this phone?"
+                onConfirm={() => deletePhone.mutate(phone.id)}
+                okText="Yes"
+                cancelText="No">
                 <Button
-                  type="link"
-                  onClick={() => handleEdit(phone)}
-                  key="edit">
-                  Edit
-                </Button>,
-                <Popconfirm
-                  key="delete"
-                  title="Are you sure you want to delete this phone?"
-                  onConfirm={() => deletePhone.mutate(phone.id)}
-                  okText="Yes"
-                  cancelText="No">
-                  <Button
-                    type="text"
-                    danger
-                    icon={<DeleteOutlined />}
-                    loading={
-                      deletePhone.isPending &&
-                      deletePhone.variables === phone.id
-                    }
-                  />
-                </Popconfirm>,
-              ]}>
-              <Card.Meta
-                title={phone.title}
-                description={
-                  <Title level={4} style={{ color: "#52c41a", margin: 0 }}>
-                    ${phone.price}
-                  </Title>
-                }
-              />
-              <div style={{ marginTop: 16 }}>
-                <Text type="secondary">
-                  Delivery: {phone.hasDelivery ? "Available" : "Not Available"}
-                </Text>
-                <div style={{ margin: "8px 0" }}>
-                  <Text strong>Memories: </Text>
-                  {phone.memories.length > 0 ? (
-                    phone.memories.map((mem) => (
-                      <Tag color="blue" key={mem}>{`${mem} GB`}</Tag>
-                    ))
-                  ) : (
-                    <Text type="secondary">N/A</Text>
-                  )}
-                </div>
-                <div>
-                  <Text strong>Colours: </Text>
-                  {phone.colours.length > 0 ? (
-                    phone.colours.map((color) => <Tag key={color}>{color}</Tag>)
-                  ) : (
-                    <Text type="secondary">N/A</Text>
-                  )}
-                </div>
-              </div>
-            </Card>
-          </Col>
+                  type="text"
+                  danger
+                  icon={<DeleteOutlined />}
+                  loading={
+                    deletePhone.isPending && deletePhone.variables === phone.id
+                  }
+                />
+              </Popconfirm>
+            </div>
+          </div>
         ))}
-      </Row>
-    </Layout>
+      </div>
+    </div>
   );
 };
 
