@@ -1,10 +1,10 @@
-import { memo } from 'react';
-import PhoneManager from './api/phoneCRUD';
+import { memo } from "react";
+import PhoneManager from "./components/Phone";
 
 const App = () => {
   return (
     <div className="App">
-      <PhoneManager/>
+      <PhoneManager />
     </div>
   );
 };
